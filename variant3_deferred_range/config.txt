@@ -1,0 +1,5 @@
+# x = number of threads, y = upper bound of the search (primes in 2..y)
+# delay is optional (milliseconds slept per step); 0 disables it
+x       4
+y       50
+delay   0

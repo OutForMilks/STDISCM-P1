@@ -1,75 +1,46 @@
-# Thin wrapper around CMake so the common case is one command.
+# Builds all four variants. Each variant is a single self-contained main.cpp.
 #
-#   make            configure + build + run
-#   make build      configure + build only
-#   make debug      same as `make run` but a Debug build in build-debug/
-#   make tsan       ThreadSanitizer build + run (GCC/Clang)
-#   make clean      delete the build directory
-#   make distclean  delete every build directory (release, debug, tsan)
-#   make rebuild    clean + build from scratch
+#   make                 build every variant
+#   make v1              build + run variant 1 (v1..v4)
+#   make run             build + run all four, one after the other
+#   make clean           delete the compiled binaries
 #
-# Pass program arguments with ARGS:   make run ARGS="4 100"
+# Each program reads the config.txt sitting next to it, so the run targets cd
+# into the variant directory first.
 
-# Silence the recursive-make directory chatter from the generated build system.
-MAKEFLAGS += --no-print-directory
+CXX      ?= g++
+CXXFLAGS ?= -std=c++20 -O2 -Wall -Wextra -Wpedantic -pthread
 
-BUILD_DIR  ?= build
-BUILD_TYPE ?= Release
-TARGET     ?= project1
-JOBS       ?= $(shell nproc 2>/dev/null || echo 4)
-CMAKE_ARGS ?=
-ARGS       ?=
-RUNNER     ?=
+V1 := variant1_immediate_range
+V2 := variant2_immediate_divisibility
+V3 := variant3_deferred_range
+V4 := variant4_deferred_divisibility
+VARIANTS := $(V1) $(V2) $(V3) $(V4)
+BINS := $(VARIANTS:%=%/prime)
 
-# WSL randomizes mmap too aggressively for ThreadSanitizer, so run it without ASLR.
-TSAN_RUNNER := $(shell command -v setarch >/dev/null 2>&1 && echo "setarch -R")
+.PHONY: all run clean v1 v2 v3 v4 help
+.DEFAULT_GOAL := all
 
-CACHE := $(BUILD_DIR)/CMakeCache.txt
+all: $(BINS)
 
-# Multi-config generators (MSVC) nest the binary under a config folder.
-BIN = $(firstword $(wildcard $(BUILD_DIR)/bin/$(TARGET) \
-                             $(BUILD_DIR)/bin/$(TARGET).exe \
-                             $(BUILD_DIR)/bin/$(BUILD_TYPE)/$(TARGET).exe))
+%/prime: %/main.cpp
+	@echo "--- compiling $* ---"
+	@$(CXX) $(CXXFLAGS) $< -o $@
 
-.PHONY: all run build configure clean distclean rebuild debug tsan help
-.DEFAULT_GOAL := run
+v1: $(V1)/prime ; @cd $(V1) && ./prime
+v2: $(V2)/prime ; @cd $(V2) && ./prime
+v3: $(V3)/prime ; @cd $(V3) && ./prime
+v4: $(V4)/prime ; @cd $(V4) && ./prime
 
-all: run
+run: all
+	@for v in $(VARIANTS); do \
+	    echo "=== $$v ==="; \
+	    (cd $$v && ./prime); \
+	    echo; \
+	done
 
-## run: build then execute the binary
-run: build
-	@echo "--- running $(TARGET) ---"
-	@$(RUNNER) $(BIN) $(ARGS)
-
-## build: configure if needed, then compile
-build: configure
-	@cmake --build $(BUILD_DIR) --config $(BUILD_TYPE) -j $(JOBS)
-
-## configure: run cmake only when the cache is missing or CMakeLists.txt changed
-configure: $(CACHE)
-
-$(CACHE): CMakeLists.txt
-	@cmake -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_ARGS)
-
-## debug: build + run with debug info and no optimization
-debug:
-	@$(MAKE) run BUILD_DIR=build-debug BUILD_TYPE=Debug
-
-## tsan: build + run under ThreadSanitizer to catch data races
-tsan:
-	@$(MAKE) run BUILD_DIR=build-tsan BUILD_TYPE=Debug CMAKE_ARGS=-DENABLE_SANITIZERS=ON RUNNER="$(TSAN_RUNNER)"
-
-## clean: remove the build directory
 clean:
-	@rm -rf $(BUILD_DIR)
+	@rm -f $(BINS)
 
-## distclean: remove every build directory (release, debug, tsan)
-distclean:
-	@rm -rf build build-debug build-tsan
-
-## rebuild: clean then build from scratch
-rebuild: clean build
-
-## help: list the available targets
 help:
-	@grep -E '^## ' $(MAKEFILE_LIST) | sed 's/^## /  make /'
+	@grep -E '^#   ' Makefile | sed 's/^#   //'

@@ -2,35 +2,49 @@
 #include <vector>
 #include <thread>
 #include <string>
+#include <sstream>
 #include "ThreadWorker.h"
 #include <fstream>
 #include <cmath>
 
+struct Config {
+    int threads = 0;   // x
+    int upper = 0;     // y
+    int delay_ms = 0;  // optional; slows each step so the interleaving is visible
+};
 
+Config read_config(const std::string& path){
+    Config c;
+    std::ifstream file(path);
+
+    if (!file){
+        std::cerr << "Could not open " << path << ", using defaults\n";
+        return c;
+    }
+
+    std::string line;
+    while (std::getline(file, line)){
+        std::istringstream iss(line);
+        std::string key;
+        int value;
+        if (iss >> key >> value){
+            if      (key == "x")    c.threads = value;
+            else if (key == "y")    c.upper = value;
+        }
+    }
+    return c;
+}
 
 int main() {
-    
-    std::ifstream file("config.txt");
-    if (!file){
-        std::cerr << "Failed to open file\n";
-        return 1;
-    }
 
-    int value;
-    std::string word;
-    //default values
-    int x = 2; //Num of threads
-    int y = 100; // Uper bound
+    Config cfg;
 
-    while (file >> word >> value){
-        if (word == "x") x = value;
-        else if (word == "y") y = value;
-    }
+    cfg = read_config("config.txt");
 
 
     std::vector<ThreadWorker> workers;
     std::vector<std::thread> threads;
-    std::vector<std::vector<std::string>> results(x);
+    std::vector<std::vector<std::string>> results(cfg.threads);
     
     int start = 1;
     int end;
