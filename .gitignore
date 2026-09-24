@@ -28,5 +28,6 @@ Makefile
 .idea/
 *.user
 compile_commands.json
+# compiled binaries live in build/bin, but just in case:
 variant*/prime
 variant*/prime.exe
