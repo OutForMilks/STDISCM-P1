@@ -7,6 +7,7 @@
 #include <atomic>
 #include <condition_variable>
 
+
 class ThreadWorker {
     private:
         // int delay = 0;
@@ -18,6 +19,7 @@ class ThreadWorker {
         inline static std::vector<std::string> output;
 
         inline static int N_THREADS;
+        inline static int DELAY;
         inline static int turn = 1;
         inline static std::mutex print_mutex;
         inline static std::atomic<int> shared_counter = 0;
@@ -29,18 +31,7 @@ class ThreadWorker {
         // int squared_n;        
     
     public:
-        ThreadWorker(int i, int x);
+        ThreadWorker(int i, int x, int delay);
 
-        void async_print(int s, int e);
-        //rename to async_prime();
-        void sync_prime(int s, int e);
-
-        void async_div();
-        void sync_div(int s, int e, int y);
-        
-        void show_output();
-
-        void advance_turn();
-        
-        // int getId();
+        void run(int s, int e);
 };
