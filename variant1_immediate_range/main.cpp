@@ -1,11 +1,9 @@
+#include <chrono>
 #include <iostream>
-#include <vector>
 #include <thread>
-#include <string>
-#include <sstream>
+#include <vector>
+
 #include "ThreadWorker.h"
-#include <fstream>
-#include <cmath>
 #include "../include/config.h"
 #include "../include/timestamp.h"
 
@@ -18,19 +16,11 @@ struct Range {
 
 int main() {
 
-    Config cfg;
-
-    cfg = read_config("config.txt");
+    const Config cfg = read_config("config.txt");
 
     std::vector<ThreadWorker> workers;
     std::vector<std::thread> threads;
-    std::vector<std::vector<std::string>> results(cfg.threads);
     
-    // Split 1..y into x chunks. Every thread gets y/x numbers, and the first
-    // (y % x) threads take one extra each, so the remainder is spread out
-    // instead of being dropped. `next` is the first number nobody owns yet, so
-    // each chunk starts exactly where the previous one ended - that is what
-    // makes gaps impossible.
     const int base  = cfg.upper / cfg.threads;
     const int extra = cfg.upper % cfg.threads;
 

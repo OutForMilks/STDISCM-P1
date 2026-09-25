@@ -3,32 +3,22 @@
 #include <vector>
 #include <string>
 #include <mutex>
-#include <thread>
 #include <atomic>
-#include <condition_variable>
 
 
 class ThreadWorker {
     private:
-        // int delay = 0;
         int id;
-        int start;
-        int end;
-        int y;
         
         inline static std::vector<std::string> output;
 
         inline static int N_THREADS;
         inline static int DELAY;
-        inline static int turn = 1;
-        inline static std::mutex print_mutex;
-        inline static std::atomic<int> shared_counter = 0;
+        // inline static int turn = 1;
+        inline static std::mutex mut;
+        // inline static std::atomic<int> shared_counter = 0;
 
-        inline static std::mutex prime_mutex;
-
-        inline static bool isPrime = true;
-        inline static int counter = 0;
-        // int squared_n;        
+        // inline static std::mutex prime_mutex;
     
     public:
         ThreadWorker(int i, int x, int delay);
