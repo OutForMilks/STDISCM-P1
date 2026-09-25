@@ -1,0 +1,47 @@
+#include "ThreadWorker.h"
+
+#include <chrono>
+#include <thread>
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include "../include/timestamp.h"
+
+ThreadWorker::ThreadWorker(int i, int x, int delay){
+    this->id = i;
+    ThreadWorker::N_THREADS = x;
+    this->DELAY = delay;
+}
+
+
+void ThreadWorker::run(int start, int end){
+
+    for (int n = start; n <= end; n++){
+
+        if (n < 2) continue;                // 0 and 1 are not prime
+        if (n > 2 and n % 2 == 0) continue; // evens above 2 are composite
+
+        bool is_composite = false;
+
+        for (int p = 3; (p*p <=n) and (!is_composite); p += 2){
+            if (n % p == 0){
+                is_composite = true;
+            }
+        }
+
+        if (!is_composite){
+            std::string s_id = std::to_string(this->id);
+            std::string s_n = std::to_string(n);
+            std::unique_lock<std::mutex> lock(ThreadWorker::mut);
+            ThreadWorker::output.push_back("[" + timestamp() + "] Thread " + s_id + " : " + s_n);
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY));
+    }
+    ThreadWorker::shared_counter++;
+    if(ThreadWorker::shared_counter == N_THREADS) {
+        std::unique_lock<std::mutex> lock(ThreadWorker::mut);
+        for (std::string s : ThreadWorker::output){
+            std::cout << s << std::endl;
+        }
+    }
+}
