@@ -1,17 +1,21 @@
 # Variant 4 — deferred print, divisibility division
 
-The work split is identical to [variant 2](../variant2_immediate_divisibility/):
-for each candidate `n` the divisor range `[2, √n]` is spread across the `x`
-threads by stride, the threads are created once and reused, and a barrier keeps
-them in step per candidate.
+Same work split as [variant 2](../variant2_immediate_divisibility/): the threads
+do not own a slice of the search range. `main` walks the candidates **one at a
+time**, and for each `n` it splits the odd divisors `3, 5, 7, …, √n` into `x`
+contiguous chunks, one per thread. Evens are skipped up front, so only odd
+divisors need testing. If any thread finds a divisor it clears a shared flag.
 
-What changes is the output. Instead of printing, the last thread to reach the
-barrier appends the result to a shared vector — the barrier already guarantees
-that only one thread runs that code at a time, so the push needs no further
-locking — and `main` prints the whole list after every thread has been joined.
+A fresh set of threads is started for every candidate and joined before `main`
+moves on to `n + 1`. Each thread bumps a shared atomic counter when it is done;
+the one that brings it to `x` knows every chunk has been tested, so it is the one
+that records the verdict. What changes from variant 2 is **when the output
+appears**: instead of printing, that thread appends the line to a shared results
+vector under a mutex, and `main` prints the whole vector only after the last
+candidate's threads have been joined.
 
-Timestamps are taken when each prime was confirmed, so they still show the
-concurrent search behind the serialized output.
+The timestamp is taken **at the moment the prime is confirmed**, not at print
+time, so the recorded times still show when each result was actually found.
 
 ## Run
 
@@ -41,13 +45,16 @@ delay   0     # optional ms slept per step
 
 ## What to look for
 
-This is the one variant where the printed order is fully deterministic and
-ascending **and** the timestamps are monotonic — the barrier serializes the
-candidates, and the deferred print preserves that order. Only the thread id
-column varies between runs, naming whichever thread finished its divisor slice
-last for that candidate.
+Primes come out in **ascending order**, like variant 2 — the candidates are
+settled one at a time, so the parallelism is inside a single primality test
+rather than across the range. The thread id on each line names whichever thread
+happened to finish its chunk last.
 
-Compared with [variant 3](../variant3_deferred_range/), the same total work is
-spread differently: variant 3 lets threads run ahead independently and pays for it
-with an unbalanced finish, while this one keeps every thread on the same candidate
-and pays per-candidate synchronisation instead.
+Nothing is printed until every candidate has been tested, so the output arrives
+as one block just before `RUN END`. Compare the total `elapsed` with variant 2:
+the search itself is identical, so the gap is the cost of printing while the
+threads run versus printing once afterwards.
+
+For small `n` the divisor range is shorter than the thread count, so most threads
+get an empty chunk and exit straight away — the cost of creating and joining `x`
+threads per candidate dominates the actual divisibility testing.
