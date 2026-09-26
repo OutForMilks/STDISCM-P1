@@ -1,4 +1,4 @@
 # delay is optional (milliseconds slept per step); 0 disables it
 x       4
-y       50
+y       26
 delay   0

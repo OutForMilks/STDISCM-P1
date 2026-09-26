@@ -8,7 +8,7 @@
 struct Config {
     int threads = 0;   // x
     int upper = 0;     // y
-    int delay_ms = 0;  // optional; slows each step so the interleaving is visible
+    int delay_ms = 5;  // optional; slows each step so the interleaving is visible
 };
 
 // inline, like timestamp(): this header is included by more than one .cpp per
