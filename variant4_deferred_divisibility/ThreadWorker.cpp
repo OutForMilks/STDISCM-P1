@@ -31,6 +31,6 @@ void ThreadWorker::run(int start, int end){
         std::unique_lock<std::mutex> lock(ThreadWorker::mut);
         std::string s_id = std::to_string(this->id);
         std::string s_n = std::to_string(n);
-        ThreadWorker::output.push_back("[" + timestamp() + "] Thread " + s_id + " | " + s_n + " is  PRIME.");
+        ThreadWorker::output.push_back("[" + timestamp() + "] Thread " + s_id + " : " + s_n);
     }
 }
