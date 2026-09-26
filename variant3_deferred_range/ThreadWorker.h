@@ -4,7 +4,6 @@
 #include <string>
 #include <mutex>
 #include <atomic>
-#include "../include/timestamp.h"
 
 class ThreadWorker {
     private:
@@ -23,4 +22,6 @@ class ThreadWorker {
         ThreadWorker(int i, int x, int delay);
 
         void run(int s, int e);
+
+        static void print_output();
 };

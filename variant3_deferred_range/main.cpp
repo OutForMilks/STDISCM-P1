@@ -53,6 +53,9 @@ int main() {
     for (int i = 0; i < cfg.threads; i++){
         threads[i].join();
     }
+
+    ThreadWorker::print_output();
+
     threads.clear();
     auto e = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(e - s).count();

@@ -13,6 +13,13 @@ ThreadWorker::ThreadWorker(int i, int x, int delay){
     this->DELAY = delay;
 }
 
+void ThreadWorker::print_output(){
+    if(ThreadWorker::shared_counter == N_THREADS) {
+        for (std::string s : ThreadWorker::output){
+            std::cout << s << std::endl;
+        }
+    }
+}
 
 void ThreadWorker::run(int start, int end){
 
@@ -21,15 +28,15 @@ void ThreadWorker::run(int start, int end){
         if (n < 2) continue;                // 0 and 1 are not prime
         if (n > 2 and n % 2 == 0) continue; // evens above 2 are composite
 
-        bool is_composite = false;
+        bool is_prime = true;
 
-        for (int p = 3; (p*p <=n) and (!is_composite); p += 2){
+        for (int p = 3; (p*p <=n) and (is_prime); p += 2){
             if (n % p == 0){
-                is_composite = true;
+                is_prime = false;
             }
         }
 
-        if (!is_composite){
+        if (is_prime){
             std::string s_id = std::to_string(this->id);
             std::string s_n = std::to_string(n);
             std::unique_lock<std::mutex> lock(ThreadWorker::mut);
@@ -38,10 +45,6 @@ void ThreadWorker::run(int start, int end){
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY));
     }
     ThreadWorker::shared_counter++;
-    if(ThreadWorker::shared_counter == N_THREADS) {
-        std::unique_lock<std::mutex> lock(ThreadWorker::mut);
-        for (std::string s : ThreadWorker::output){
-            std::cout << s << std::endl;
-        }
-    }
+
 }
+
