@@ -17,7 +17,11 @@ class ThreadWorker {
         inline static std::mutex mut;
 
     public:
-        ThreadWorker(int i, int x, int delay);
+        ThreadWorker(int i, int x);
 
         void run(int s, int e);
+
+        static void set_delay(int val){
+            DELAY = val;
+        }
 };

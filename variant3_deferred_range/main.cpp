@@ -17,6 +17,7 @@ struct Range {
 int main() {
 
     const Config cfg = read_config("config.txt");
+    ThreadWorker::set_delay(cfg.delay_ms);
 
     std::vector<ThreadWorker> workers;
     std::vector<std::thread> threads;
@@ -33,7 +34,7 @@ int main() {
     }
 
     for (int i = 1; i <= cfg.threads; i++){
-        workers.push_back(ThreadWorker(i, cfg.threads, cfg.delay_ms));
+        workers.push_back(ThreadWorker(i, cfg.threads));
     }
     auto s = std::chrono::steady_clock::now();
     std::cout << "[" << timestamp() << "] RUN START threads=" << cfg.threads << " limit=" << cfg.upper << std::endl;

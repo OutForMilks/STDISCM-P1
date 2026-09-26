@@ -19,9 +19,13 @@ class ThreadWorker {
         inline static int counter = 0;
     
     public:
-        ThreadWorker(int i, int x, int delay);
+        ThreadWorker(int i, int x);
 
         void run(int s, int e);
+
+        static void set_delay(int val){
+            DELAY = val;
+        }
 
         static void print_output();
 };

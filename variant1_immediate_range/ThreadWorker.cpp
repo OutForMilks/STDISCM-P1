@@ -4,10 +4,9 @@
 #include <iostream>
 #include "../include/timestamp.h"
 
-ThreadWorker::ThreadWorker(int i, int x, int delay){
+ThreadWorker::ThreadWorker(int i, int x){
     this->id = i;
     ThreadWorker::N_THREADS = x;
-    this->DELAY = delay;
 }
 
 void ThreadWorker::run(int start, int end){
