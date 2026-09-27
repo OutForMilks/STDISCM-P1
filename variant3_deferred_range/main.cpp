@@ -7,13 +7,28 @@
 #include "../include/config.h"
 #include "../include/timestamp.h"
 
-// A thread's slice of the search space. end < start means "nothing to do",
-// which is what threads get when there are more threads than numbers.
+/**
+ * One thread's slice of the numbers to search.
+ * If end is less than start, the slice is empty and the thread has nothing to do.
+ * That happens when there are more threads than numbers.
+ */
 struct Range {
+    /** The first number in the slice (inclusive). */
     int start;
+    /** The last number in the slice (inclusive). */
     int end;
 };
 
+/**
+ * Variant 3: deferred printing, straight range division.
+ *
+ * Reads x and y from config.txt, splits 1..y into x equal slices, and starts
+ * one thread per slice. The threads only save their primes. After every thread
+ * has joined, all saved primes are printed at once. Prints a timestamp when
+ * the run starts and when it ends.
+ *
+ * @return 0 when the run finishes
+ */
 int main() {
 
     const Config cfg = read_config("config.txt");

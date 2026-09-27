@@ -7,13 +7,29 @@
 #include "../include/config.h"
 #include "../include/timestamp.h"
 
-// A thread's slice of the search space. end < start means "nothing to do",
-// which is what threads get when there are more threads than numbers.
+/**
+ * One thread's chunk of odd divisors to test for the current number.
+ * If end is less than start, the chunk is empty and the thread has nothing to do.
+ * That happens when the number has fewer divisors to test than there are threads.
+ */
 struct Range {
+    /** The first divisor in the chunk (odd, inclusive). */
     int start;
+    /** The last divisor in the chunk (inclusive). */
     int end;
 };
 
+/**
+ * Variant 4: deferred printing, divisibility division.
+ *
+ * Reads x and y from config.txt, then checks the numbers 2..y one at a time.
+ * For each number, it splits the odd divisors up to its square root into x
+ * chunks and starts one thread per chunk. Primes are only saved. After every
+ * number is done, all saved primes are printed at once. Prints a timestamp
+ * when the run starts and when it ends.
+ *
+ * @return 0 when the run finishes
+ */
 int main() {
 
     const Config cfg = read_config("config.txt");
