@@ -4,9 +4,8 @@
 #include <iostream>
 #include "../include/timestamp.h"
 
-ThreadWorker::ThreadWorker(int i, int x){
+ThreadWorker::ThreadWorker(int i){
     this->id = i;
-    ThreadWorker::N_THREADS = x;
 }
 
 void ThreadWorker::run(int start, int end){

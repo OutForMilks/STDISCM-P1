@@ -34,7 +34,7 @@ int main() {
     }
 
     for (int i = 1; i <= cfg.threads; i++){
-        workers.push_back(ThreadWorker(i, cfg.threads));
+        workers.push_back(ThreadWorker(i));
     }
     auto s = std::chrono::steady_clock::now();
     std::cout << "[" << timestamp() << "] RUN START threads=" << cfg.threads << " limit=" << cfg.upper << std::endl;

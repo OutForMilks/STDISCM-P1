@@ -10,14 +10,12 @@ class ThreadWorker {
     private:
         int id;
         
-        inline static std::vector<std::string> output;
 
-        inline static int N_THREADS;
         inline static int DELAY;
         inline static std::mutex mut;
 
     public:
-        ThreadWorker(int i, int x);
+        ThreadWorker(int i);
 
         void run(int s, int e);
 

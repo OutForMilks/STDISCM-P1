@@ -13,10 +13,8 @@ class ThreadWorker {
 
         inline static int N_THREADS;
         inline static int DELAY;
-        inline static int turn = 1;
         inline static std::mutex mut;
         inline static std::atomic<int> shared_counter = 0;
-        inline static int counter = 0;
     
     public:
         ThreadWorker(int i, int x);
