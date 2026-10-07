@@ -53,9 +53,9 @@ int main() {
     auto s = std::chrono::steady_clock::now();
     std::cout << "[" << timestamp() << "] RUN START threads=" << cfg.threads << " limit=" << cfg.upper << std::endl;
 
-    for (std::size_t i = 0; i < cfg.threads; i++){
-        std::cout << "Thread " << i+1 << " assigned [" << ranges[i].start << ", " << ranges[i].end << "]" << std::endl;
-    }
+    // for (std::size_t i = 0; i < cfg.threads; i++){
+    //     std::cout << "Thread " << i+1 << " assigned [" << ranges[i].start << ", " << ranges[i].end << "]" << std::endl;
+    // }
 
     for (std::size_t i = 0; i < cfg.threads; i++){
         const std::size_t start = ranges[i].start;

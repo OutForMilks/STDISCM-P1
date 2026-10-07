@@ -66,9 +66,9 @@ int main() {
                 start += next + (next * (size-1));
             }
             
-            for (std::size_t i = 0; i < cfg.threads; i++){
-                std::cout << "Thread " << i+1 << " assigned [" << ranges[i].start << ", " << ranges[i].end << "]" << std::endl;
-            }
+            // for (std::size_t i = 0; i < cfg.threads; i++){
+            //     std::cout << "Thread " << i+1 << " assigned [" << ranges[i].start << ", " << ranges[i].end << "]" << std::endl;
+            // }
 
             auto s_i = std::chrono::steady_clock::now();
             std::cout << "[" << timestamp() << "] INNER RUN START threads=" << cfg.threads << " num=" << n << std::endl;
