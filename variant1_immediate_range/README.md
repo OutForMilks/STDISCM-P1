@@ -1,6 +1,6 @@
 # Variant 1 — immediate print, range division
 
-Each of the `x` threads gets a contiguous slice of `[2, y]` and tests every number
+Each of the `x` threads gets a contiguous slice of `[1, y]` and tests every number
 in its slice on its own. When a thread finds a prime it **prints it immediately**,
 tagged with a timestamp and its thread id, so the output order is the real
 interleaving of the threads rather than numeric order.

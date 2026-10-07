@@ -4,15 +4,16 @@ Same work split as [variant 1](../variant1_immediate_range/): the interval
 `[2, y]` becomes `x` contiguous slices, one per thread. What changes is **when the
 output appears**.
 
-Each thread appends its findings to its own slot of a results vector — one slot
-per thread, so no two threads ever touch the same memory and no lock is needed —
-and `main` prints everything only after every thread has been joined. Once the
-joins are done there are no other threads left to race with, so reading the
-results needs no synchronisation either.
+`main` owns one `std::vector<std::size_t>` of primes and hands every worker a
+reference to it. Each thread adds a prime the moment it finds one, holding a
+mutex for the `push_back`: `std::vector` is not thread-safe, so two threads
+adding at once could lose primes or corrupt the vector. Nothing is printed while
+the threads run. `main` prints the whole list only after every thread has been
+joined. Once the joins are done there are no other threads left to race with, so
+reading the list needs no lock.
 
-The timestamp is taken **at the moment the prime is found**, not at print time, so
-the recorded times still show the threads running concurrently even though the
-printing is strictly serial.
+Per the spec for deferred printing, each prime is printed as the bare number,
+with no timestamp or thread id.
 
 ## Run
 
@@ -42,11 +43,22 @@ delay   0     # optional ms slept per step
 
 ## What to look for
 
-Output is grouped by thread, and **the timestamps are not monotonic** down the
-page: thread 2's first find is stamped earlier than thread 1's last one, because
-the threads were running at the same time. That non-monotonic column is the whole
-point — it is the evidence of concurrency that immediate printing shows through
-line ordering instead.
+The list is in **discovery order, not numeric order**. The threads run at the
+same time and take turns adding to the shared vector, so primes from different
+slices end up mixed together:
+
+```
+2
+251
+3
+257
+5
+...
+```
+
+That mixing is the evidence of concurrency here, the same thing
+[variant 1](../variant1_immediate_range/) shows through the order of its printed
+lines.
 
 Nothing is printed until every thread has finished, so total wall time is set by
 the slowest thread — the one holding the top of the range.

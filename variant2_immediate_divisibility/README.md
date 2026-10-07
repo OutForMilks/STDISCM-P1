@@ -1,16 +1,20 @@
 # Variant 2 — immediate print, divisibility division
 
-The threads do not own a slice of the search range. They work on **one candidate
-at a time**, splitting the divisor range `[2, √n]` among themselves by stride:
-thread 0 tests 2, 2+x, 2+2x, …, thread 1 tests 3, 3+x, … If any thread finds a
-divisor it raises a shared flag.
+The threads do not own a slice of the search range. `main` walks the candidates
+**one at a time**, and for each `n` it splits the odd divisors `3, 5, 7, …, √n`
+into `x` contiguous chunks, one per thread. Evens are skipped up front, so only
+odd divisors need testing. If any thread finds a divisor it clears a shared
+atomic flag.
 
-The threads are created once and reused for every candidate; a barrier keeps them
-in step. The last thread to reach the barrier knows every slice for `n` has been
-tested, so it is the one that **prints immediately** — before the group moves on
-to `n + 1` — and it also clears the flag for the next round. Doing the decision
-inside the barrier's release means it happens exactly once per candidate, with no
-extra locking.
+A fresh set of threads is started for every candidate and joined before `main`
+moves on to `n + 1`. When a thread finishes its chunk and the flag is still
+set, it bumps a shared atomic counter. The one that brings it to `x` knows every chunk has
+been tested, so it is the one that **prints immediately**, tagged with a
+timestamp and its thread id. `main` resets the flag and the counter after the
+joins, ready for the next candidate.
+
+For each candidate `main` also prints the chunk each thread was given and an
+`INNER RUN START` / `INNER RUN END` pair, so you can see the per-candidate cost.
 
 ## Run
 
@@ -35,7 +39,7 @@ cd variant2_immediate_divisibility
 ```
 x       4     # threads
 y       50    # search 2..y
-delay   0     # optional ms slept per step; raise it to watch the interleaving
+delay   0     # read, but not used by this variant
 ```
 
 ## What to look for
@@ -46,7 +50,8 @@ the candidates one at a time, so the parallelism is inside a single primality
 test rather than across the range. The thread id on each line varies, though:
 it names whichever thread happened to finish its divisor slice last.
 
-The trade-off is visible in the timing. Per candidate there is real
-synchronisation overhead, and for small `n` the divisor range is shorter than the
-thread count, so most threads have nothing to test and simply wait at the
-barrier.
+The trade-off is visible in the timing. Creating and joining `x` threads for
+every candidate is real overhead, and for small `n` the divisor range is shorter
+than the thread count, so most threads get an empty chunk and exit straight
+away. [Variant 4](../variant4_deferred_divisibility/) avoids that cost with a
+thread pool.

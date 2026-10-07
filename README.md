@@ -8,15 +8,19 @@ They differ along two axes, giving the 2×2 matrix below.
 | divide by **range**        | [variant1_immediate_range/](variant1_immediate_range/) | [variant3_deferred_range/](variant3_deferred_range/) |
 | divide by **divisibility** | [variant2_immediate_divisibility/](variant2_immediate_divisibility/) | [variant4_deferred_divisibility/](variant4_deferred_divisibility/) |
 
-**Range division** gives each thread a contiguous slice of `[2, y]` to test on its
+**Range division** gives each thread a contiguous slice of `[1, y]` to test on its
 own. **Divisibility division** puts all threads on one candidate at a time and
-splits the divisor range `[2, √n]` among them.
+splits its odd divisors `3, 5, 7, …, √n` among them (even candidates above 2 are
+skipped up front, so even divisors never need testing).
 
 **Immediate** printing means the thread that settles a number prints it right
-then, so the output order is the real interleaving. **Deferred** printing means
-findings are collected and printed by the main thread after every worker has been
-joined, the timestamps are still taken at discovery time, so they show the
-concurrency behind the serialized output.
+then, tagged with a timestamp and its thread id, so the output order is the real
+interleaving. **Deferred** printing means the primes are collected and printed by
+the main thread only after all the work is done. Deferred output is the bare
+numbers, with no per-prime timestamp or thread id.
+
+Every variant prints a timestamped `RUN START` line before the work begins and a
+`RUN END` line with the elapsed time when it finishes.
 
 ## Layout
 
@@ -25,10 +29,10 @@ Makefile                        CMake wrapper; plain `make` asks which variant t
 CMakeLists.txt                  one executable per variant
 scripts/pick-variant.sh         the "which variant?" prompt
 include/                        pieces shared by all variants (config, timestamp)
-variant1_immediate_range/       main.cpp + config.txt + README.md
+variant1_immediate_range/       main.cpp + ThreadWorker.{h,cpp} + config.txt + README.md
 variant2_immediate_divisibility/
 variant3_deferred_range/
-variant4_deferred_divisibility/
+variant4_deferred_divisibility/ also Task.h + TaskQueue.{h,cpp} (thread pool)
 ```
 
 Each variant owns its `config.txt`, so the four can be configured independently.
@@ -78,4 +82,4 @@ Every variant reads the `config.txt` next to it — one `key value` per line:
 | --- | --- |
 | `x` | number of threads |
 | `y` | upper bound; primes are searched in `2..y` |
-| `delay` | optional, milliseconds slept per step (default `0`) — stretches the run so the interleaving is easy to read |
+| `delay` | optional, milliseconds slept per step (default `5`, max `1000`) — stretches the run so the interleaving is easy to read. Only variants 1 and 3 use it. |
