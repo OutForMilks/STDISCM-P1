@@ -1,10 +1,6 @@
 #pragma once
 
-#include <vector>
-#include <string>
 #include <mutex>
-#include <atomic>
-
 
 /**
  * A worker that searches one contiguous slice of the number range for primes.
@@ -16,10 +12,10 @@
 class ThreadWorker {
     private:
         /** This worker's thread ID, starting at 1. Shown on every printed line. */
-        int id;
+        std::size_t id;
 
         /** Milliseconds to sleep after each number, so the interleaving is easier to see. */
-        inline static int DELAY;
+        inline static std::size_t DELAY;
         /** Guards std::cout so two threads cannot mix their lines together. */
         inline static std::mutex mut;
 
@@ -29,7 +25,7 @@ class ThreadWorker {
          *
          * @param i the thread ID for this worker, starting at 1
          */
-        ThreadWorker(int i);
+        ThreadWorker(std::size_t i);
 
         /**
          * Tests every number from s to e and prints each prime immediately.
@@ -38,14 +34,14 @@ class ThreadWorker {
          * @param e the last number of this worker's slice (inclusive);
          *          if e is less than s, the slice is empty and nothing is tested
          */
-        void run(int s, int e);
+        void run(std::size_t s, std::size_t e);
 
         /**
          * Sets how long every worker sleeps after testing each number.
          *
          * @param val the delay in milliseconds; 0 means no delay
          */
-        static void set_delay(int val){
+        static void set_delay(std::size_t val){
             DELAY = val;
         }
 };

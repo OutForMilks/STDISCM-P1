@@ -1,10 +1,7 @@
 #pragma once
 
-#include <vector>
-#include <string>
 #include <mutex>
 #include <atomic>
-
 
 /**
  * A worker that tests one chunk of divisors for the current number.
@@ -17,23 +14,20 @@
 class ThreadWorker {
     private:
         /** This worker's thread ID, starting at 1. Shown on every printed line. */
-        int id;
+        std::size_t id;
         /** The number every worker is currently testing. */
-        inline static int n;
-
-        /** Collected output lines. Not used in this variant, which prints immediately. */
-        inline static std::vector<std::string> output;
+        inline static std::size_t n;
 
         /** Total number of worker threads (x from config.txt). */
-        inline static int N_THREADS;
+        inline static std::size_t N_THREADS;
         /** Milliseconds to sleep per step. Stored but not used yet. */
-        inline static int DELAY;
+        inline static std::size_t DELAY;
         /** Guards std::cout so two threads cannot mix their lines together. */
         inline static std::mutex mut;
         /** Stays true while no worker has found a divisor of {@link #n}. */
         inline static std::atomic<bool> shared_bool = true;
         /** How many workers have finished testing {@link #n}. */
-        inline static std::atomic<int> shared_counter = 0;
+        inline static std::atomic<std::size_t> shared_counter = 0;
 
     public:
         /**
@@ -42,7 +36,7 @@ class ThreadWorker {
          * @param i the thread ID for this worker, starting at 1
          * @param x the total number of worker threads
          */
-        ThreadWorker(int i, int x);
+        ThreadWorker(std::size_t i, std::size_t x);
 
         /**
          * Tests the odd divisors s, s+2, s+4, ... up to e against {@link #n}.
@@ -53,14 +47,14 @@ class ThreadWorker {
          * @param e the last divisor to test (inclusive);
          *          if e is less than s, this worker has no divisors to test
          */
-        void run(int s, int e);
+        void run(std::size_t s, std::size_t e);
 
         /**
          * Sets the number every worker will test next.
          *
          * @param val the number to test
          */
-        static void set_n(int val){
+        static void set_n(std::size_t val){
             n = val;
         }
 
@@ -69,7 +63,7 @@ class ThreadWorker {
          *
          * @param val the delay in milliseconds; 0 means no delay
          */
-        static void set_delay(int val){
+        static void set_delay(std::size_t val){
             DELAY = val;
         }
 

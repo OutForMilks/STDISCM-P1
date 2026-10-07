@@ -4,21 +4,21 @@
 #include <iostream>
 #include "../include/timestamp.h"
 
-ThreadWorker::ThreadWorker(int i){
+ThreadWorker::ThreadWorker(std::size_t i){
     this->id = i;
 }
 
-void ThreadWorker::run(int start, int end){
+void ThreadWorker::run(std::size_t start, std::size_t end){
 
 
-    for (int n = start; n <= end; n++){
+    for (std::size_t n = start; n <= end; n++){
 
         if (n < 2) continue;                // 0 and 1 are not prime
         if (n > 2 and n % 2 == 0) continue; // evens above 2 are composite
 
         bool is_prime = true;
 
-        for (int p = 3; (p*p <=n) and (is_prime); p += 2){
+        for (std::size_t p = 3; (p*p <=n) and (is_prime); p += 2){
             if (n % p == 0){
                 is_prime = false;
             }

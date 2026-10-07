@@ -3,15 +3,14 @@
 
 #include <thread>
 #include <iostream>
-#include <vector>
 
-ThreadWorker::ThreadWorker(int i, int x){
+ThreadWorker::ThreadWorker(std::size_t i, std::size_t x){
     this->id = i;
     ThreadWorker::N_THREADS = x;
 }
 
-void ThreadWorker::run(int start, int end){
-    for (int p = start; p <= end; p+=2){
+void ThreadWorker::run(std::size_t start, std::size_t end){
+    for (std::size_t p = start; p <= end; p+=2){
         if (this->n % p == 0) {
             this->shared_bool = false;
         }

@@ -14,9 +14,9 @@
  */
 struct Range {
     /** The first divisor in the chunk (odd, inclusive). */
-    int start;
+    std::size_t start;
     /** The last divisor in the chunk (inclusive). */
-    int end;
+    std::size_t end;
 };
 
 /**
@@ -38,50 +38,50 @@ int main() {
     std::vector<ThreadWorker> workers;
     std::vector<std::thread> threads;
 
-    for (int i = 1; i <= cfg.threads; i++){
+    for (std::size_t i = 1; i <= cfg.threads; i++){
         workers.push_back(ThreadWorker(i, cfg.threads));
     }
     
     auto s = std::chrono::steady_clock::now();
     std::cout << "[" << timestamp() << "] RUN START threads=" << cfg.threads << " limit=" << cfg.upper << std::endl;
-        for (int n = 1; n <= cfg.upper; n++){
+        for (std::size_t n = 1; n <= cfg.upper; n++){
 
             
             if (n < 2) continue;         
             if (n > 2 and n % 2 == 0) continue;
 
             ThreadWorker::set_n(n);
-            int limit = (int)std::sqrt(n);
-            int count = (limit-1)/2;
+            std::size_t limit = (std::size_t)std::sqrt(n);
+            std::size_t count = (limit >= 3) ? (limit - 1)/2 : 0;
 
-            int base  = count / cfg.threads;
-            int extra = count % cfg.threads;
+            std::size_t base  = count / cfg.threads;
+            std::size_t extra = count % cfg.threads;
 
             std::vector<Range> ranges;
-            int next = 2;
-            int start = 3;
-            for (int i = 0; i < cfg.threads; i++){
-                const int size = base + (i < extra ? 1 : 0);
+            std::size_t next = 2;
+            std::size_t start = 3;
+            for (std::size_t i = 0; i < cfg.threads; i++){
+                const std::size_t size = base + (i < extra ? 1 : 0);
                 ranges.push_back(Range{start, start + (next * (size-1))});
                 start += next + (next * (size-1));
             }
             
-            for (int i = 0; i < cfg.threads; i++){
+            for (std::size_t i = 0; i < cfg.threads; i++){
                 std::cout << "Thread " << i+1 << " assigned [" << ranges[i].start << ", " << ranges[i].end << "]" << std::endl;
             }
 
             auto s_i = std::chrono::steady_clock::now();
             std::cout << "[" << timestamp() << "] INNER RUN START threads=" << cfg.threads << " num=" << n << std::endl;
 
-            for (int i = 0; i < cfg.threads; i++){
-                const int start = ranges[i].start;
-                const int end   = ranges[i].end;
+            for (std::size_t i = 0; i < cfg.threads; i++){
+                const std::size_t start = ranges[i].start;
+                const std::size_t end   = ranges[i].end;
                 threads.push_back(std::thread([&workers, i, start, end]{
                     workers[i].run(start, end);
                 }));
             }
 
-            for (int i = 0; i < cfg.threads; i++){
+            for (std::size_t i = 0; i < cfg.threads; i++){
                 threads[i].join();
             }
             threads.clear();

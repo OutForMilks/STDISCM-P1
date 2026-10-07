@@ -14,9 +14,9 @@
  */
 struct Range {
     /** The first number in the slice (inclusive). */
-    int start;
+    std::size_t start;
     /** The last number in the slice (inclusive). */
-    int end;
+    std::size_t end;
 };
 
 /**
@@ -36,36 +36,36 @@ int main() {
     std::vector<ThreadWorker> workers;
     std::vector<std::thread> threads;
 
-    const int base  = cfg.upper / cfg.threads;
-    const int extra = cfg.upper % cfg.threads;
+    const std::size_t base  = cfg.upper / cfg.threads;
+    const std::size_t extra = cfg.upper % cfg.threads;
 
     std::vector<Range> ranges;
-    int next = 1;
-    for (int i = 0; i < cfg.threads; i++){
-        const int size = base + (i < extra ? 1 : 0);
+    std::size_t next = 1;
+    for (std::size_t i = 0; i < cfg.threads; i++){
+        const std::size_t size = base + (i < extra ? 1 : 0);
         ranges.push_back(Range{next, next + size - 1});
         next += size;
     }
 
-    for (int i = 1; i <= cfg.threads; i++){
+    for (std::size_t i = 1; i <= cfg.threads; i++){
         workers.push_back(ThreadWorker(i));
     }
     auto s = std::chrono::steady_clock::now();
     std::cout << "[" << timestamp() << "] RUN START threads=" << cfg.threads << " limit=" << cfg.upper << std::endl;
 
-    for (int i = 0; i < cfg.threads; i++){
+    for (std::size_t i = 0; i < cfg.threads; i++){
         std::cout << "Thread " << i+1 << " assigned [" << ranges[i].start << ", " << ranges[i].end << "]" << std::endl;
     }
 
-    for (int i = 0; i < cfg.threads; i++){
-        const int start = ranges[i].start;
-        const int end   = ranges[i].end;
+    for (std::size_t i = 0; i < cfg.threads; i++){
+        const std::size_t start = ranges[i].start;
+        const std::size_t end   = ranges[i].end;
         threads.push_back(std::thread([&workers, i, start, end]{
             workers[i].run(start, end);
         }));
     }
 
-    for (int i = 0; i < cfg.threads; i++){
+    for (std::size_t i = 0; i < cfg.threads; i++){
         threads[i].join();
     }
     threads.clear();
