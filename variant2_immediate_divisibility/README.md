@@ -4,7 +4,8 @@ The threads do not own a slice of the search range. `main` walks the candidates
 **one at a time**, and for each `n` it splits the odd divisors `3, 5, 7, …, √n`
 into `x` contiguous chunks, one per thread. Evens are skipped up front, so only
 odd divisors need testing. If any thread finds a divisor it clears a shared
-atomic flag.
+atomic flag. Every thread checks the flag as it goes and stops testing its
+chunk as soon as the flag is cleared.
 
 A fresh set of threads is started for every candidate and joined before `main`
 moves on to `n + 1`. When a thread finishes its chunk and the flag is still
@@ -13,8 +14,8 @@ been tested, so it is the one that **prints immediately**, tagged with a
 timestamp and its thread id. `main` resets the flag and the counter after the
 joins, ready for the next candidate.
 
-For each candidate `main` also prints the chunk each thread was given and an
-`INNER RUN START` / `INNER RUN END` pair, so you can see the per-candidate cost.
+For each candidate `main` also prints an `INNER RUN START` / `INNER RUN END`
+pair, so you can see the per-candidate cost.
 
 ## Run
 

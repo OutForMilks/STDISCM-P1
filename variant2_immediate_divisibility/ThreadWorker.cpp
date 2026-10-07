@@ -10,7 +10,7 @@ ThreadWorker::ThreadWorker(std::size_t i, std::size_t x){
 }
 
 void ThreadWorker::run(std::size_t start, std::size_t end){
-    for (std::size_t p = start; p <= end; p+=2){
+    for (std::size_t p = start; p <= end and this->shared_bool; p+=2){
         if (this->n % p == 0) {
             this->shared_bool = false;
         }
