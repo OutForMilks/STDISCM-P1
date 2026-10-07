@@ -1,81 +1,67 @@
 #pragma once
 
-#include <vector>
-#include <string>
-#include <mutex>
 #include <atomic>
-
+#include <thread>
+#include "TaskQueue.h"
 
 /**
- * A worker that tests one chunk of divisors for the current number.
+ * A pool thread that tests chunks of divisors taken from a shared {@link TaskQueue}.
  *
  * Variant 4: deferred printing, divisibility division. Numbers are checked
- * one at a time. For each number, every worker tests a different chunk of odd
- * divisors. The last worker to finish saves the number to a shared list if no
- * worker found a divisor, and main prints the list once every number is done.
+ * one at a time. For each number, main pushes one chunk of odd divisors per
+ * worker into the queue and waits for all of them. A worker that finds a
+ * divisor clears {@link #shared_bool}. Workers never save or print anything;
+ * main reads the flag and keeps the primes itself.
+ *
+ * The thread starts in the constructor and keeps taking tasks until the
+ * queue is closed. The destructor joins it.
  */
 class ThreadWorker {
     private:
-        /** This worker's thread ID, starting at 1. Saved with every prime found. */
-        int id;
-        /** The number every worker is currently testing. */
-        inline static int n;
-
-        /** Primes found so far, saved as ready-to-print lines. Guarded by {@link #mut}. */
-        inline static std::vector<std::string> output;
-
-        /** Total number of worker threads (x from config.txt). */
-        inline static int N_THREADS;
-        /** Milliseconds to sleep per step. Stored but not used yet. */
-        inline static int DELAY;
-        /** Guards {@link #output} so two threads cannot add to it at the same time. */
-        inline static std::mutex mut;
-        /** Stays true while no worker has found a divisor of {@link #n}. */
+        /** Milliseconds to sleep per step. Set from config.txt but not used in this variant. */
+        inline static std::size_t DELAY;
+        /** Stays true while no worker has found a divisor of the current number. */
         inline static std::atomic<bool> shared_bool = true;
-        /** How many workers have finished testing {@link #n}. */
-        inline static std::atomic<int> shared_counter = 0;
+
+        /** The queue this worker takes tasks from. Must be declared before {@link #t}. */
+        TaskQueue& queue;
+        /** This worker's thread. Started in the constructor, joined in the destructor. */
+        std::thread t;
+
+        /** Takes tasks from {@link #queue} until it is closed and empty. Runs on {@link #t}. */
+        void run();
+
+        /**
+         * Tests the odd divisors task.start, task.start+2, ... up to task.end
+         * against task.n. Stops early once any worker has found a divisor.
+         * Always calls {@link TaskQueue#task_done} when finished.
+         *
+         * @param task the number and the chunk of divisors to test;
+         *             if task.end is less than task.start, there is nothing to test
+         */
+        void doTask(const Task& task);
 
     public:
         /**
-         * Creates a worker.
+         * Creates a worker and starts its thread.
          *
-         * @param i the thread ID for this worker, starting at 1
-         * @param x the total number of worker threads
+         * @param queue the shared queue the worker takes tasks from
          */
-        ThreadWorker(int i, int x);
+        ThreadWorker(TaskQueue& queue);
 
-        /**
-         * Tests the odd divisors s, s+2, s+4, ... up to e against {@link #n}.
-         * If this is the last worker to finish and no divisor was found,
-         * it saves {@link #n} to {@link #output}. Nothing is printed here.
-         *
-         * @param s the first divisor to test (odd, inclusive)
-         * @param e the last divisor to test (inclusive);
-         *          if e is less than s, this worker has no divisors to test
-         */
-        void run(int s, int e);
+        /** Waits for this worker's thread to finish. Close the queue first, or this waits forever. */
+        ~ThreadWorker();
 
-        /**
-         * Sets the number every worker will test next.
-         *
-         * @param val the number to test
-         */
-        static void set_n(int val){
-            n = val;
-        }
+        ThreadWorker(const ThreadWorker&) = delete;             // a worker can't be copied
+        ThreadWorker& operator=(const ThreadWorker&) = delete;
 
         /**
          * Sets the per-step delay.
          *
          * @param val the delay in milliseconds; 0 means no delay
          */
-        static void set_delay(int val){
+        static void set_delay(std::size_t val){
             DELAY = val;
-        }
-
-        /** Sets the finished-worker count back to 0. Call before testing the next number. */
-        static void reset_count(){
-            shared_counter = 0;
         }
 
         /** Sets {@link #shared_bool} back to true. Call before testing the next number. */
@@ -84,8 +70,12 @@ class ThreadWorker {
         }
 
         /**
-         * Prints every saved prime, in the order it was saved.
-         * Call this only after every number has been tested and every thread joined.
+         * Tells whether the current number is prime.
+         * Read this only after {@link TaskQueue#wait_all} returns.
+         *
+         * @return true if no worker found a divisor of the current number
          */
-        static void print_output();
+        static bool is_prime(){
+            return shared_bool;
+        }
 };

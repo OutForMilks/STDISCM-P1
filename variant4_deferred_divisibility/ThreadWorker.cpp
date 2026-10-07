@@ -1,36 +1,27 @@
 #include "ThreadWorker.h"
+#include "Task.h"
 
-#include <chrono>
 #include <thread>
-#include <iostream>
-#include <vector>
-#include <cmath>
-#include "../include/timestamp.h"
 
-ThreadWorker::ThreadWorker(int i, int x){
-    this->id = i;
-    ThreadWorker::N_THREADS = x;
+ThreadWorker::ThreadWorker(TaskQueue& q)
+    : queue(q), t(&ThreadWorker::run, this) {}
+
+ThreadWorker::~ThreadWorker(){
+    if(t.joinable()) t.join();
 }
 
-void ThreadWorker::print_output(){
-
-    for (std::string s : ThreadWorker::output){
-        std::cout << s << std::endl;
+void ThreadWorker::run(){
+    Task task;
+    while (queue.pop(task)){
+        doTask(task);
     }
-    
 }
 
-void ThreadWorker::run(int start, int end){
-    for (int p = start; p <= end; p+=2){
-        if (this->n % p == 0) {
+void ThreadWorker::doTask(const Task& task){
+    for (std::size_t p = task.start; (p <= task.end) and (shared_bool); p+=2){
+        if (task.n % p == 0) {
             this->shared_bool = false;
         }
     }
-
-    if (this->shared_bool and (++shared_counter == this->N_THREADS)){
-        std::unique_lock<std::mutex> lock(ThreadWorker::mut);
-        std::string s_id = std::to_string(this->id);
-        std::string s_n = std::to_string(n);
-        ThreadWorker::output.push_back("[" + timestamp() + "] Thread " + s_id + " : " + s_n);
-    }
+    queue.task_done();
 }
